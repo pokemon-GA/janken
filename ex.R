@@ -494,3 +494,74 @@ input_data <- function(group) { # nolint
     }
     return(result_array)
 }
+
+
+
+
+
+
+
+
+
+# input_data <- function(...) {
+#     a <- list(...)
+#     return(a)
+# }
+
+
+
+
+
+
+
+
+
+
+
+input_data <- function(
+        group,
+        ...
+    ) { # nolint
+    #具体的なデータの代入
+    result_array <- list()
+    array_length <- length(group)
+    #patternの配列の生成
+    pattern <- list(...)
+    for (i in 1:array_length) {
+        strategy_number <- as.integer(group[i])
+        # colnames(pattern[strategy_number]) <- c(i)
+        result_array <- append(result_array, pattern[strategy_number])
+    }
+    return(result_array)
+}
+
+
+
+ex <- function(
+    group,
+    ...
+    ) {
+    result_array <- list()
+    array_length <- length(group)
+    pattern <- list(...)
+    for (i in 1:array_length) {
+        strategy_number <- as.integer(group[i])
+        result_array <- append(result_array, pattern[strategy_number])
+    }
+    return(result_array)
+}
+
+
+abc <- ex(
+    group = initialize_group,
+    pattern_1,
+    pattern_2,
+    pattern_3,
+    pattern_4,
+    pattern_5,
+    pattern_6,
+    pattern_7,
+    pattern_8,
+    pattern_9,
+    pattern_10
+)

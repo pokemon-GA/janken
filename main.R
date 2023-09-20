@@ -1,24 +1,11 @@
 ##########################一般化した評価関数##########################
 ######ランダム (疑似一様乱数)
 strategy_uniform_random <- function(the_number_of_times) { # nolint
-    gen_rand <- function(x, the_number_of_times) {
-        strategy_data_frame <- data.frame()
-        for (i in 1:the_number_of_times) {
-            #333万1分の1の確率で1
-            #333万分の1の確率で2
-            #333万1分の1の確率で3
-            if (x[i] >= 0 && x[i] <= 1) {
-                strategy_data_frame <- rbind(strategy_data_frame, 1)
-            } else if (x[i] > 1 && x[i] <= 2) {
-                strategy_data_frame <- rbind(strategy_data_frame, 2)
-            } else if (x[i] > 2 && x[i] <= 3) {
-                strategy_data_frame <- rbind(strategy_data_frame, 3)
-            }
-        }
-        return(strategy_data_frame)
+    strategy_data_frame <- data.frame()
+    random <- sample(1:3, the_number_of_times, replace = TRUE, prob = NULL)
+    for (i in 1:the_number_of_times) {
+        strategy_data_frame <- rbind(strategy_data_frame, random[i])
     }
-    x <- runif(the_number_of_times, min = 0, max = 3)
-    strategy_data_frame <- gen_rand(x, the_number_of_times)
     colnames(strategy_data_frame) <- c('strategy')
     return(strategy_data_frame)
 }
@@ -159,6 +146,7 @@ pattern_9 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2
 #cycle = 2
 #パーはじめ
 pattern_10 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 3) #nolint
+
 #####################################################################
 
 
@@ -166,15 +154,14 @@ pattern_10 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 
 
 #初期集団の生成
 #生成関数
-gen_group <- function(group_size, the_number_of_times) {
+gen_group <- function(group_size, strategy_pattern) {
     #1000万分の100万1の確率でthe_number_of_value
     #1000万分の100万の確率で 1 ~ (the_number_of_value - 1)
     arr <- list()
-    gen_initialize_rand_group <- runif(group_size, min = 0, max = the_number_of_times) #nolint
-    arr_length <- length(gen_initialize_rand_group)
-    for (i in 1:arr_length) {
-        if (gen_initialize_rand_group[i] == the_number_of_times) {
-            arr <- append(arr, the_number_of_times)
+    gen_initialize_rand_group <- runif(group_size, min = 0, max = strategy_pattern) #nolint
+    for (i in 1:group_size) {
+        if (gen_initialize_rand_group[i] == strategy_pattern) {
+            arr <- append(arr, strategy_pattern)
         } else {
             input_value <- trunc(gen_initialize_rand_group[i] + 1)
             arr <- append(arr, input_value)
@@ -185,60 +172,24 @@ gen_group <- function(group_size, the_number_of_times) {
 
 #実際の生成
 #戦略の集団サイズ
-group_size <- 1
+group_size <- 100
 #戦略サイズ
-the_number_of_times <- 10
+strategy_pattern <- 10
 
-initialize_group <- gen_group(group_size = group_size, the_number_of_times = the_number_of_times) #nolint
+initialize_group <- gen_group(group_size = group_size, strategy_pattern = strategy_pattern) #nolint
 #評価関数前の各戦略の具体的なデータの代入
 input_data <- function(
         group,
-        pattern_1,
-        pattern_2,
-        pattern_3,
-        pattern_4,
-        pattern_5,
-        pattern_6,
-        pattern_7,
-        pattern_8,
-        pattern_9,
-        pattern_10
+        ...
     ) { # nolint
     #具体的なデータの代入
     result_array <- list()
     array_length <- length(group)
+    #patternの配列の生成
+    pattern <- list(...)
     for (i in 1:array_length) {
-        if (group[i] == 1) {
-            colnames(pattern_1) <- c(i)
-            result_array <- append(result_array, pattern_1)
-        } else if (group[i] == 2) {
-            colnames(pattern_2) <- c(i)
-            result_array <- append(result_array, pattern_2)
-        } else if (group[i] == 3) {
-            colnames(pattern_3) <- c(i)
-            result_array <- append(result_array, pattern_3)
-        } else if (group[i] == 4) {
-            colnames(pattern_4) <- c(i)
-            result_array <- append(result_array, pattern_4)
-        } else if (group[i] == 5) {
-            colnames(pattern_5) <- c(i)
-            result_array <- append(result_array, pattern_5)
-        } else if (group[i] == 6) {
-            colnames(pattern_6) <- c(i)
-            result_array <- append(result_array, pattern_6)
-        } else if (group[i] == 7) {
-            colnames(pattern_7) <- c(i)
-            result_array <- append(result_array, pattern_7)
-        } else if (group[i] == 8) {
-            colnames(pattern_8) <- c(i)
-            result_array <- append(result_array, pattern_8)
-        } else if (group[i] == 9) {
-            colnames(pattern_9) <- c(i)
-            result_array <- append(result_array, pattern_9)
-        } else if (group[i] == 10) {
-            colnames(pattern_10) <- c(i)
-            result_array <- append(result_array, pattern_10)
-        }
+        strategy_number <- as.integer(group[i])
+        result_array <- append(result_array, pattern[strategy_number])
     }
     return(result_array)
 }
@@ -246,16 +197,16 @@ input_data <- function(
 ############母集団############
 general_population <- input_data(
     group = initialize_group,
-    pattern_1 = pattern_1,
-    pattern_2 = pattern_2,
-    pattern_3 = pattern_3,
-    pattern_4 = pattern_4,
-    pattern_5 = pattern_5,
-    pattern_6 = pattern_6,
-    pattern_7 = pattern_7,
-    pattern_8 = pattern_8,
-    pattern_9 = pattern_9,
-    pattern_10 = pattern_10
+    pattern_1,
+    pattern_2,
+    pattern_3,
+    pattern_4,
+    pattern_5,
+    pattern_6,
+    pattern_7,
+    pattern_8,
+    pattern_9,
+    pattern_10
 )
 
 ###########バトルシミュレーター#############
