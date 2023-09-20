@@ -1,31 +1,183 @@
+##########################一般化した評価関数##########################
+######ランダム (疑似一様乱数)
+strategy_uniform_random <- function(the_number_of_times) { # nolint
+    gen_rand <- function(x, the_number_of_times) {
+        strategy_data_frame <- data.frame()
+        for (i in 1:the_number_of_times) {
+            #333万1分の1の確率で1
+            #333万分の1の確率で2
+            #333万1分の1の確率で3
+            if (x[i] >= 0 && x[i] <= 1) {
+                strategy_data_frame <- rbind(strategy_data_frame, 1)
+            } else if (x[i] > 1 && x[i] <= 2) {
+                strategy_data_frame <- rbind(strategy_data_frame, 2)
+            } else if (x[i] > 2 && x[i] <= 3) {
+                strategy_data_frame <- rbind(strategy_data_frame, 3)
+            }
+        }
+        return(strategy_data_frame)
+    }
+    x <- runif(the_number_of_times, min = 0, max = 3)
+    strategy_data_frame <- gen_rand(x, the_number_of_times)
+    colnames(strategy_data_frame) <- c('strategy')
+    return(strategy_data_frame)
+}
+
+
+
+######全て同じ
+strategy_all_the_same <- function(the_number_of_times, number) {
+    strategy_data_frame <- data.frame()
+    #numberのエラーハンドリング
+    if (number != 1 && number != 2 && number != 3) {
+        #じゃんけんなのに、1,2,3意外入れるな！
+        stop('first_number has only 1, 2 or 3.')
+    }
+    for (i in 1:the_number_of_times) {
+        strategy_data_frame <- rbind(strategy_data_frame, number)
+    }
+    colnames(strategy_data_frame) <- c('strategy')
+    return(strategy_data_frame)
+}
+
+
+######サイクル
+strategy_cycle <- function(the_number_of_times, cycle, first_number) { # nolint
+    strategy_data_frame <- data.frame()
+    #first_numberの処理
+    if (first_number == 1) {
+        second_number <- first_number + 1
+        third_number <- first_number + 2
+    } else if (first_number == 2) {
+        second_number <- first_number + 1
+        third_number <- first_number - 1
+    } else if (first_number == 3) {
+        second_number <- first_number - 2
+        third_number <- first_number - 1
+    } else {
+        #じゃんけんなのに、1,2,3意外入れるな！
+        stop('first_number has only 1, 2 or 3.')
+    }
+    if (the_number_of_times < cycle) {
+        #サイクルサイズが戦略サイズよりでかいとは何事か
+        #まあ、いいだろう
+        #全て同じfirst_numberの手にする
+        strategy_data_frame <- strategy_all_the_same(the_number_of_times, first_number) # nolint
+        #ここまでOK!
+    } else if (the_number_of_times <= 0) {
+        #じゃんけんなのに、1,2,3意外入れるな！
+        stop('the_number_of_times has to input more than 0.')
+    } else {
+        #余りを出すための配列を吐く関数
+        surplus <- function(the_number_of_times) {
+            surplus_array <- c()
+            for (i in 1:the_number_of_times) {
+                surplus_array <- append(surplus_array, i)
+            }
+            return(surplus_array)
+        }
+        surplus_array <- surplus(the_number_of_times)
+        for (i in 1:the_number_of_times) {
+            if (nrow(strategy_data_frame) < the_number_of_times) {
+                #処理書く部分
+                if (surplus_array[i] %% 3 == 1) {
+                    for (i in 1:cycle) {
+                        strategy_data_frame <- rbind(strategy_data_frame, first_number) # nolint
+                        #目的の戦略回数になったら、抜ける
+                        if (nrow(strategy_data_frame) >= the_number_of_times) {
+                            break
+                        }
+                    }
+                } else if (surplus_array[i] %% 3 == 2) {
+                    for (i in 1:cycle) {
+                        strategy_data_frame <- rbind(strategy_data_frame, second_number) # nolint
+                        #目的の戦略回数になったら、抜ける
+                        if (nrow(strategy_data_frame) >= the_number_of_times) {
+                            break
+                        }
+                    }
+                } else if (surplus_array[i] %% 3 == 0) {
+                    for (i in 1:cycle) {
+                        strategy_data_frame <- rbind(strategy_data_frame, third_number) # nolint
+                        #目的の戦略回数になったら、抜ける
+                        if (nrow(strategy_data_frame) >= the_number_of_times) {
+                            break
+                        }
+                    }
+                }
+                #目的の戦略回数になったら、抜ける
+                if (nrow(strategy_data_frame) >= the_number_of_times) {
+                    break
+                }
+            } else {
+                break
+            }
+        }
+    }
+    colnames(strategy_data_frame) <- c('strategy')
+    return(strategy_data_frame)
+}
+
+#####################################################################
+#戦略の回数
+the_number_of_times <- 10
+
+#具体的な評価関数
+#pattern_1
+#ランダム生成
+pattern_1 <- strategy_uniform_random(the_number_of_times = the_number_of_times) #nolint
+#pattern_2
+#全てグー
+pattern_2 <- strategy_all_the_same(the_number_of_times = the_number_of_times, number = 1) #nolint
+#pattern_3
+#全てチョキ
+pattern_3 <- strategy_all_the_same(the_number_of_times = the_number_of_times, number = 2) #nolint
+#pattern_4
+#全てパー
+pattern_4 <- strategy_all_the_same(the_number_of_times = the_number_of_times, number = 3) #nolint
+#pattern_5
+#cycle = 1
+#グーはじめ
+pattern_5 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 1, first_number = 1) #nolint
+#pattern_6
+#cycle = 1
+#チョキはじめ
+pattern_6 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 1, first_number = 2) #nolint
+#pattern_7
+#cycle = 1
+#パーはじめ
+pattern_7 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 1, first_number = 3) #nolint
+#pattern_8
+#cycle = 2
+#グーはじめ
+pattern_8 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 1) #nolint
+#pattern_9
+#cycle = 2
+#チョキはじめ
+pattern_9 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 2) #nolint
+#pattern_10
+#cycle = 2
+#パーはじめ
+pattern_10 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 3) #nolint
+#####################################################################
+
+
+
+
 #初期集団の生成
 #生成関数
-gen_group <- function(x) {
-    #1000万分の100万1の確率で1
-    #1000万分の100万の確率で 2, 3, 4, 5, 6, 7, 8, 9, 10
+gen_group <- function(group_size, the_number_of_times) {
+    #1000万分の100万1の確率でthe_number_of_value
+    #1000万分の100万の確率で 1 ~ (the_number_of_value - 1)
     arr <- list()
-    arr_length <- length(x)
+    gen_initialize_rand_group <- runif(group_size, min = 0, max = the_number_of_times) #nolint
+    arr_length <- length(gen_initialize_rand_group)
     for (i in 1:arr_length) {
-        if (x[i] >= 0 && x[i] <= 1) {
-            arr <- append(arr, 1)
-        } else if (x[i] > 1 && x[i] <= 2) {
-            arr <- append(arr, 2)
-        } else if (x[i] > 2 && x[i] <= 3) {
-            arr <- append(arr, 3)
-        } else if (x[i] > 3 && x[i] <= 4) {
-            arr <- append(arr, 4)
-        } else if (x[i] > 4 && x[i] <= 5) {
-            arr <- append(arr, 5)
-        } else if (x[i] > 5 && x[i] <= 6) {
-            arr <- append(arr, 6)
-        } else if (x[i] > 6 && x[i] <= 7) {
-            arr <- append(arr, 7)
-        } else if (x[i] > 7 && x[i] <= 8) {
-            arr <- append(arr, 8)
-        } else if (x[i] > 8 && x[i] <= 9) {
-            arr <- append(arr, 9)
-        } else if (x[i] > 9 && x[i] <= 10) {
-            arr <- append(arr, 10)
+        if (gen_initialize_rand_group[i] == the_number_of_times) {
+            arr <- append(arr, the_number_of_times)
+        } else {
+            input_value <- trunc(gen_initialize_rand_group[i] + 1)
+            arr <- append(arr, input_value)
         }
     }
     return(arr)
@@ -33,143 +185,77 @@ gen_group <- function(x) {
 
 #実際の生成
 #戦略の集団サイズ
-group_size <- 100
+group_size <- 1
 #戦略サイズ
-storategy_pattern <- 10
+the_number_of_times <- 10
 
-gen_initialize_rand_group <- runif(group_size, min = 0, max = storategy_pattern)
-initialize_group <- gen_group(gen_initialize_rand_group)
-
-
-######ここまでエラーなし######
-
+initialize_group <- gen_group(group_size = group_size, the_number_of_times = the_number_of_times) #nolint
 #評価関数前の各戦略の具体的なデータの代入
-input_data <- function(group) { # nolint
+input_data <- function(
+        group,
+        pattern_1,
+        pattern_2,
+        pattern_3,
+        pattern_4,
+        pattern_5,
+        pattern_6,
+        pattern_7,
+        pattern_8,
+        pattern_9,
+        pattern_10
+    ) { # nolint
     #具体的なデータの代入
     result_array <- list()
-    #戦略
-    #書く戦略は、10回分の勝負を1つの配列に入れている
-    # 1 ... グー
-    # 2 ... チョキ
-    # 3 ... パー
-    #戦略パターンを1~10としている
-    #パターン1
-    #全てグー
-    pattern_1 <- function() {
-        array <- list(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-        return(array)
-    }
-    #パターン2
-    #全てチョキ
-    pattern_2 <- function() {
-        array <- list(2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
-        return(array)
-    }
-    #パターン3
-    #全てパー
-    pattern_3 <- function() {
-        array <- list(3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
-        return(array)
-    }
-    #パターン4
-    #グー始まりのローテーション
-    pattern_4 <- function() {
-        array <- list(1, 2, 3, 1, 2, 3, 1, 2, 3, 1)
-        return(array)
-    }
-    #パターン5
-    #チョキ始まりのローテーション
-    pattern_5 <- function() {
-        array <- list(2, 3, 1, 2, 3, 1, 2, 3, 1, 2)
-        return(array)
-    }
-    #パターン6
-    #パー始まりのローテーション
-    pattern_6 <- function() {
-        array <- list(3, 1, 2, 3, 1, 2, 3, 1, 2, 3)
-        return(array)
-    }
-    #パターン7
-    #ランダム (疑似一様乱数)
-    pattern_7 <- function() { # nolint
-        gen_rand <- function(x, array_length) {
-            array <- list()
-            for (i in 1:array_length) {
-                #333万1分の1の確率で1
-                #333万分の1の確率で2
-                #333万1分の1の確率で3
-                if (x[i] >= 0 && x[i] <= 1) {
-                    array <- append(array, 1)
-                } else if (x[i] > 1 && x[i] <= 2) {
-                    array <- append(array, 2)
-                } else if (x[i] > 2 && x[i] <= 3) {
-                    array <- append(array, 3)
-                }
-            }
-            return(array)
-        }
-        array_length <- 10
-        x <- runif(array_length, min = 0, max = 3)
-        array <- gen_rand(x, array_length)
-        return(array)
-    }
-    #パターン8
-    #グー始まりのローテーション (2回ずつ)
-    pattern_8 <- function() {
-        array <- list(1, 1, 2, 2, 3, 3, 1, 1, 2, 2)
-        return(array)
-    }
-    #パターン9
-    #チョキ始まりのローテーション (2回ずつ)
-    pattern_9 <- function() {
-        array <- list(2, 2, 3, 3, 1, 1, 2, 2, 3, 3)
-        return(array)
-    }
-    #パターン10
-    #パー始まりのローテーション (2回ずつ)
-    pattern_10 <- function() {
-        array <- list(3, 3, 1, 1, 2, 2, 3, 3, 1, 1)
-        return(array)
-    }
     array_length <- length(group)
     for (i in 1:array_length) {
         if (group[i] == 1) {
-            storategy <- pattern_1()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_1) <- c(i)
+            result_array <- append(result_array, pattern_1)
         } else if (group[i] == 2) {
-            storategy <- pattern_2()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_2) <- c(i)
+            result_array <- append(result_array, pattern_2)
         } else if (group[i] == 3) {
-            storategy <- pattern_3()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_3) <- c(i)
+            result_array <- append(result_array, pattern_3)
         } else if (group[i] == 4) {
-            storategy <- pattern_4()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_4) <- c(i)
+            result_array <- append(result_array, pattern_4)
         } else if (group[i] == 5) {
-            storategy <- pattern_5()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_5) <- c(i)
+            result_array <- append(result_array, pattern_5)
         } else if (group[i] == 6) {
-            storategy <- pattern_6()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_6) <- c(i)
+            result_array <- append(result_array, pattern_6)
         } else if (group[i] == 7) {
-            storategy <- pattern_7()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_7) <- c(i)
+            result_array <- append(result_array, pattern_7)
         } else if (group[i] == 8) {
-            storategy <- pattern_8()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_8) <- c(i)
+            result_array <- append(result_array, pattern_8)
         } else if (group[i] == 9) {
-            storategy <- pattern_9()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_9) <- c(i)
+            result_array <- append(result_array, pattern_9)
         } else if (group[i] == 10) {
-            storategy <- pattern_10()
-            result_array <- append(result_array, storategy)
+            colnames(pattern_10) <- c(i)
+            result_array <- append(result_array, pattern_10)
         }
     }
     return(result_array)
 }
 
-molded_group <- input_data(initialize_group)
+############母集団############
+general_population <- input_data(
+    group = initialize_group,
+    pattern_1 = pattern_1,
+    pattern_2 = pattern_2,
+    pattern_3 = pattern_3,
+    pattern_4 = pattern_4,
+    pattern_5 = pattern_5,
+    pattern_6 = pattern_6,
+    pattern_7 = pattern_7,
+    pattern_8 = pattern_8,
+    pattern_9 = pattern_9,
+    pattern_10 = pattern_10
+)
 
-
-
-#https://cell-innovation.nig.ac.jp/SurfWiki/vector_difference.html
+###########バトルシミュレーター#############
