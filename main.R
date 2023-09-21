@@ -10,8 +10,6 @@ strategy_uniform_random <- function(the_number_of_times) { # nolint
     return(strategy_data_frame)
 }
 
-
-
 ######全て同じ
 strategy_all_the_same <- function(the_number_of_times, number) {
     strategy_data_frame <- data.frame()
@@ -26,7 +24,6 @@ strategy_all_the_same <- function(the_number_of_times, number) {
     colnames(strategy_data_frame) <- c('strategy')
     return(strategy_data_frame)
 }
-
 
 ######サイクル
 strategy_cycle <- function(the_number_of_times, cycle, first_number) { # nolint
@@ -105,9 +102,14 @@ strategy_cycle <- function(the_number_of_times, cycle, first_number) { # nolint
     return(strategy_data_frame)
 }
 
-#####################################################################
-#戦略の回数
+##################################################################
+##################決めることのできるパラメーター集###################
+#戦略の集団サイズ
+group_size <- 100
+#各戦略の長さ
 the_number_of_times <- 10
+#戦略パターン
+strategy_pattern <- 10
 
 #具体的な評価関数
 #pattern_1
@@ -169,13 +171,6 @@ gen_group <- function(group_size, strategy_pattern) {
     }
     return(arr)
 }
-
-#実際の生成
-#戦略の集団サイズ
-group_size <- 100
-#戦略サイズ
-strategy_pattern <- 10
-
 initialize_group <- gen_group(group_size = group_size, strategy_pattern = strategy_pattern) #nolint
 #評価関数前の各戦略の具体的なデータの代入
 input_data <- function(
@@ -183,15 +178,15 @@ input_data <- function(
         ...
     ) { # nolint
     #具体的なデータの代入
-    result_array <- list()
-    array_length <- length(group)
+    result_list <- list()
+    list_length <- length(group)
     #patternの配列の生成
     pattern <- list(...)
-    for (i in 1:array_length) {
+    for (i in 1:list_length) {
         strategy_number <- as.integer(group[i])
-        result_array <- append(result_array, pattern[strategy_number])
+        result_list <- append(result_list, pattern[strategy_number])
     }
-    return(result_array)
+    return(result_list)
 }
 
 ############母集団############
@@ -210,3 +205,91 @@ general_population <- input_data(
 )
 
 ###########バトルシミュレーター#############
+#勝ち ... 2点
+#あいこ ... 1点
+#負け ... 0点
+
+battle <- function(group, group_size, the_number_of_times, strategy_group) { # nolint
+    #点数格納のためのlistを作る
+    point_list_func <- function(group_size) {
+        point_list <- list()
+        for (i in 1:group_size) {
+            strategy_number <- strategy_group[[i]]
+            #!ここ謎
+            #!勝手に型変換される
+            #!data.frame -> double      # nolint
+            #!でも、挙動はlist
+            data_frame <- data.frame()
+            data_frame <- rbind(data_frame, 0)
+            data_frame <- rbind(data_frame, strategy_number)
+            data_frame <- rbind(data_frame, i)
+            colnames(data_frame) <- c('strategy')
+            point_list <- append(point_list, data_frame)
+        }
+        return(point_list)
+    }
+    #実際の初期化したデータを渡す関数をpoint_listに入れる
+    point_list <- point_list_func(group_size = group_size)
+    #本編の処理
+    for (me in 1:group_size) {
+        me_point <- 0
+        me_data_frame <- group[[me]]
+        me_number <- me + 1
+        if (me_number < group_size) {
+            for (enemy in me_number:group_size) {
+                #group[i] vs group[i + 1 ~]
+                enemy_point <- 0
+                enemy_data_frame <- group[[enemy]]
+                for (round_number in 1:the_number_of_times) {
+                    #あいこ
+                    if (me_data_frame[round_number, ] == enemy_data_frame[round_number, ]) {
+                        me_point <- me_point + 1
+                        enemy_point <- enemy_point + 1
+                        #移行、勝ち負けは確定する
+                    } else if (me_data_frame[round_number, ] == 1 && enemy_data_frame[round_number, ] == 2) {
+                        me_point <- me_point + 2
+                        enemy_point <- enemy_point + 0
+                    } else if (me_data_frame[round_number, ] == 1 && enemy_data_frame[round_number, ] == 3) {
+                        me_point <- me_point + 0
+                        enemy_point <- enemy_point + 2
+                    } else if (me_data_frame[round_number, ] == 2 && enemy_data_frame[round_number, ] == 1) {
+                        me_point <- me_point + 0
+                        enemy_point <- enemy_point + 1
+                    } else if (me_data_frame[round_number, ] == 2 && enemy_data_frame[round_number, ] == 3) {
+                        me_point <- me_point + 2
+                        enemy_point <- enemy_point + 0
+                    } else if (me_data_frame[round_number, ] == 3 && enemy_data_frame[round_number, ] == 1) {
+                        me_point <- me_point + 2
+                        enemy_point <- enemy_point + 0
+                    } else if (me_data_frame[round_number, ] == 3 && enemy_data_frame[round_number, ] == 2) {
+                        me_point <- me_point + 0
+                        enemy_point <- enemy_point + 2
+                    } else {
+                        stop('group element can only contain 1, 2 or 3.')
+                    }
+                }
+                #各enemyに点数を入れる
+                #point_listの得点保存の要素とenemyの番号を照合して、一致したら
+                point_list[[enemy]][[1]] <- point_list[[enemy]][[1]] + enemy_point
+            }
+            #各enemyに点数を入れる
+            #point_listの得点保存の要素とenemyの番号を照合して、一致したら
+            point_list[[me]][[1]] <- point_list[[me]][[1]] + me_point
+        } else {
+            break
+        }
+    }
+    return(point_list)
+}
+
+#実行
+data <- battle(
+    group = general_population,
+    group_size = group_size,
+    the_number_of_times = the_number_of_times,
+    strategy_group = initialize_group
+)
+
+# 1 > 2
+# 1 < 3
+# 2 > 3
