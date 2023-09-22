@@ -789,20 +789,26 @@ initialize_group <- gen_group(group_size = group_size, strategy_pattern = strate
 
 
 unko <- function(group_size, strategy_group) {
-    point_list <- list()
-    for (i in 1:group_size) {
-        strategy_number <- strategy_group[[i]]
-        #追加要素
-        ########################################################
-        data_frame <- data.frame()
-        data_frame <- rbind(data_frame, 0)
-        data_frame <- rbind(data_frame, strategy_number)
-        data_frame <- rbind(data_frame, i)
-        colnames(data_frame) <- c('strategy')
-        point_list <- append(point_list, data_frame)
-        ########################################################
+    row_label <- 1:group_size
+    point <- rep(0, group_size)
+    individual_number <- row_label
+    gen_strategy_number <- function(group_size, strategy_group) {
+        strategy_number_vector <- c()
+        for (i in 1:group_size) {
+            strategy_number <- strategy_group[[i]]
+            strategy_number_vector <- append(strategy_number_vector, strategy_number)
+        }
+        return(strategy_number_vector)
     }
-    return(point_list)
+    strategy_number <- gen_strategy_number(group_size = group_size, strategy_group = strategy_group)
+    #!point_list -> point_data_frame
+    point_data_frame <- data.frame(
+        row.names=row_label,
+        point = point,
+        strategy_number = strategy_number,
+        individual_number = individual_number
+    )
+    return(point_data_frame)
 }
 
 abc <- unko(group_size = group_size, strategy_group = initialize_group)
