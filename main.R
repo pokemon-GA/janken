@@ -110,9 +110,6 @@ group_size <- 100
 the_number_of_times <- 10
 #戦略パターン
 strategy_pattern <- 10
-#選択
-#上位x%残す　(0 < ratio < 1)
-ratio <- 0.5
 
 
 #具体的な評価関数
@@ -219,7 +216,7 @@ general_population <- input_data(
 # 1 > 2
 # 1 < 3
 # 2 > 3
-win_point <- 2
+win_point <- 10
 lose_point <- 0
 draw_point <- 1
 
@@ -312,8 +309,13 @@ data <- battle(
     draw_point = draw_point
 )
 
+#####################################################################################################
+#ランキング選択
+#上位x%残す　(0 < ratio < 1)
+ratio <- 0.5
+
 #選択
-select <- function(data, group_size, ratio) {
+ranking_select <- function(data, group_size, ratio) {
     #rationのエラーハンドリング
     #!0 < ratio < 1
     if (0 >= ratio || 1 <= ratio) {
@@ -335,12 +337,56 @@ select <- function(data, group_size, ratio) {
 }
 
 #実行
-select_data <- select(
+ranking_select_data <- ranking_select(
     data = data,
     group_size = group_size,
-    ratio
+    ratio = ratio
 )
 
+
+#####################################################################################################
+#ルーレット選択
+#上位x%残す　(0 < ratio < 1)
+ratio <- 0.5
+
+roulette_select <- function(data, group_size, ratio) {
+    #rationのエラーハンドリング
+    #!0 < ratio < 1
+    if (0 >= ratio || 1 <= ratio) {
+        stop('ratio can only input 0 < ratio < 1.')
+    }
+    #IEC 60559規格の四捨五入で、整数値にする
+    survivor_number <- round(group_size * ratio)
+    #エラーハンドリング
+    #四捨五入でsurvor == 0 || 1 の時
+    if (survivor_number == 0) {
+        survivor_number <- 1
+        warning('The ratio`s number is 0. You should input ratio larger than your input data.')
+    } else if (survivor_number == group_size) {
+        survivor_number <- group_size - 1
+        warning('The ratio`s number is 1. You should input ratio less than your input data.')
+    }
+    #*ポイントの？をつくろう！
+    point_as_vector <- data$point
+    select_data_number <- sample(1:group_size, survivor_number, replace = FALSE, prob = point_as_vector)
+    print(point_as_vector)
+    #*data.frame化
+    select_data <- data.frame()
+    for (i in 1:survivor_number) {
+        each_select_data_number <- select_data_number[i]
+        select_data <- rbind(select_data, data[each_select_data_number,])
+    }
+    return(select_data)
+}
+
+
+#実行
+roulette_select_data <- roulette_select(
+    data = data,
+    group_size = group_size,
+    ratio = ratio
+)
+###########################################################################################
 #消えた分の生成
 #とりあえずランダムに生成
 gen_new_generation_random <- function(select_data, group_size, strategy_pattern) {
@@ -355,8 +401,14 @@ gen_new_generation_random <- function(select_data, group_size, strategy_pattern)
 }
 
 #実行
-new_generation_data <- gen_new_generation_random(
-    select_data = select_data,
+roulette_new_generation_data <- gen_new_generation_random(
+    select_data = roulette_select_data,
+    group_size = group_size,
+    strategy_pattern = strategy_pattern
+)
+
+ranking_new_generation_data <- gen_new_generation_random(
+    select_data = ranking_select_data,
     group_size = group_size,
     strategy_pattern = strategy_pattern
 )
@@ -370,7 +422,6 @@ new_generation_data <- gen_new_generation_random(
 #状況をグラフ出力するのに用いる
 each_strategy_ratio <- function(select_data, strategy_pattern) {
     sorted_strategy_data <- select_data[order(select_data$strategy_number, decreasing=F),]
-    print(sorted_strategy_data)
     each_strategy_data_items_vector <- c()
     for (i in 1:strategy_pattern) {
         #Headerがstrategy_numberのところで、strategy_numberがi
@@ -383,11 +434,12 @@ each_strategy_ratio <- function(select_data, strategy_pattern) {
 }
 
 #実行
-sorted_strategy_data <- each_strategy_ratio(
-    select_data = select_data,
+roulette_sorted_strategy_data <- each_strategy_ratio(
+    select_data = roulette_select_data,
     strategy_pattern = strategy_pattern
 )
 
-
-1~10井 10 -> 戦略の数字
-10=20 8
+ranking_sorted_strategy_data <- each_strategy_ratio(
+    select_data = ranking_select_data,
+    strategy_pattern = strategy_pattern
+)

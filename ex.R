@@ -812,3 +812,20 @@ unko <- function(group_size, strategy_group) {
 }
 
 abc <- unko(group_size = group_size, strategy_group = initialize_group)
+
+
+
+
+
+
+
+
+unkochan <- sample(1:3, 10, replace = TRUE, prob = c(1, 10, 100))
+
+
+a <- c()
+for (i in 1:10) {
+    a <- append(a, i)
+}
+
+unkochan <- sample(1:10, 5, replace = FALSE, prob = a)
