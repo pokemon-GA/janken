@@ -829,3 +829,159 @@ for (i in 1:10) {
 }
 
 unkochan <- sample(1:10, 5, replace = FALSE, prob = a)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#dataはｍ流用
+#dataのpointをいじりたい
+data <- data.frame(
+    row.names = sample(1:40, 40, replace = FALSE, prob = NULL),
+    point = c(
+        100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+        90, 90, 90, 90, 90, 90, 90, 90, 90, 90,
+        80, 80, 80, 80, 80, 80, 80, 80, 80, 80,
+        70, 70, 70, 70, 70, 70, 70, 70, 70, 70),
+    strategy_number = c(
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+    )
+)
+
+#####################################################################################################
+#ルーレット選択
+#group_size
+group_size <- 40
+#上位x%残す　(0 < ratio < 1)
+ratio <- 0.5
+#strategy_pattern
+strategy_pattern <- 4
+
+roulette_select <- function(data, group_size, ratio) {
+    #rationのエラーハンドリング
+    #!0 < ratio < 1
+    if (0 >= ratio || 1 <= ratio) {
+        stop('ratio can only input 0 < ratio < 1.')
+    }
+    #IEC 60559規格の四捨五入で、整数値にする
+    survivor_number <- round(group_size * ratio)
+    #エラーハンドリング
+    #四捨五入でsurvor == 0 || 1 の時
+    if (survivor_number == 0) {
+        survivor_number <- 1
+        warning('The ratio`s number is 0. You should input ratio larger than your input data.') #nolint
+    } else if (survivor_number == group_size) {
+        survivor_number <- group_size - 1
+        warning('The ratio`s number is 1. You should input ratio less than your input data.') #nolint
+    }
+    #*ポイントの？をつくろう！
+    point_as_vector <- data$point
+    select_data_number <- sample(1:group_size, survivor_number, replace = FALSE, prob = point_as_vector) #nolint
+    print(select_data_number)
+    #*data.frame化
+    select_data <- data.frame()
+    for (i in 1:survivor_number) {
+        each_select_data_number <- select_data_number[i]
+        select_data <- rbind(select_data, data[each_select_data_number, ])
+    }
+    return(select_data)
+}
+
+
+#実行
+roulette_select_data <- roulette_select(
+    data = data,
+    group_size = group_size,
+    ratio = ratio
+)
+
+
+
+#戦略のパターンの割合を計算
+#状況をグラフ出力するのに用いる
+each_strategy_ratio <- function(select_data, strategy_pattern) {
+    sorted_strategy_data <- select_data[order(select_data$strategy_number, decreasing=F),]
+    each_strategy_data_items_vector <- c()
+    for (i in 1:strategy_pattern) {
+        #Headerがstrategy_numberのところで、strategy_numberがi
+        filter <- sorted_strategy_data[sorted_strategy_data$strategy_number == i,]
+        #filterの行数を調べればいい
+        each_strategy_data_items <- nrow(filter)
+        each_strategy_data_items_vector <- append(each_strategy_data_items_vector, each_strategy_data_items)
+    }
+    return(each_strategy_data_items_vector)
+}
+
+
+#実行
+roulette_sorted_strategy_data <- each_strategy_ratio(
+    select_data = roulette_select_data,
+    strategy_pattern = strategy_pattern
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
