@@ -422,9 +422,6 @@ ranking_new_generation_random_data <- gen_new_generation_random(
 ###########################################################################################
 #消えた分の生成
 #割合で生成
-
-#戦略のパターンの割合を計算
-#状況をグラフ出力するのにも用いる
 each_strategy_ratio <- function(select_data, strategy_pattern) {
     sorted_strategy_data <- select_data[order(select_data$strategy_number, decreasing=F), ]
     each_strategy_data_items_vector <- c()
@@ -467,16 +464,16 @@ gen_new_generation_roulette <- function(equal_ratio, each_strategy_ratio, group_
     fluctuant_ratio_size <- generate_size - equal_ratio_size
     #*実際の生成
     #均等にする部分の生成
-    equal_ratio_vector_prop_func <- function() {
-        equal_ratio_vector_prop <- c()
-        for (i in 1:strategy_pattern) {
-            each_strategy_generate_ratio <- strategy_pattern / 100
-            equal_ratio_vector_prop <- append(equal_ratio_vector_prop, each_strategy_generate_ratio)
-        }
-        return(equal_ratio_vector_prop)
-    }
-    equal_ratio_vector_prob <- equal_ratio_vector_prop_func()
-    equal_ratio_vector <- sample(1:strategy_pattern, equal_ratio_size, replace = TRUE, prob = equal_ratio_vector_prob)
+    # equal_ratio_vector_prop_func <- function() {
+    #     equal_ratio_vector_prop <- c()
+    #     for (i in 1:strategy_pattern) {
+    #         each_strategy_generate_ratio <- 100 / strategy_pattern
+    #         equal_ratio_vector_prop <- append(equal_ratio_vector_prop, each_strategy_generate_ratio)
+    #     }
+    #     return(equal_ratio_vector_prop)
+    # }
+    # equal_ratio_vector_prob <- equal_ratio_vector_prop_func()
+    equal_ratio_vector <- sample(1:strategy_pattern, equal_ratio_size, replace = TRUE, prob = NULL)
     #変動する分の生成
     fluctuant_ratio_vector <- sample(1:strategy_pattern, fluctuant_ratio_size, replace = TRUE, prob = each_strategy_ratio)
     #結果
