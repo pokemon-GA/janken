@@ -985,3 +985,112 @@ roulette_sorted_strategy_data <- each_strategy_ratio(
 
 
 
+
+###########
+#グラフ出力
+###########
+#data.frameに変換
+change_data_frame <- function(data, group_size) {
+    data_data_frame <- data.frame()
+    for (i in 1:group_size) {
+        data_data_frame <- rbind(data_data_frame, data[i])
+    }
+    colnames(data_data_frame) <- c('strategy_number')
+    return(data_data_frame)
+}
+#実行
+change_data_frame_data <- change_data_frame(
+    data = data,
+    group_size = group_size
+)
+
+#集計
+#上位グループの数を調べる
+survivor <- function(ratio, group_size) {
+    #rationのエラーハンドリング
+    #!0 < ratio < 1
+    if (0 >= ratio || 1 <= ratio) {
+        stop('ratio can only input 0 < ratio < 1.')
+    }
+    #IEC 60559規格の四捨五入で、整数値にする
+    survivor_number <- round(group_size * ratio)
+    #エラーハンドリング
+    #四捨五入でsurvor == 0 || 1 の時
+    if (survivor_number == 0) {
+        survivor_number <- 1
+        warning('The ratio`s number is 0. You should input ratio larger than your input data.')
+    } else if (survivor_number == group_size) {
+        survivor_number <- group_size - 1
+        warning('The ratio`s number is 1. You should input ratio less than your input data.')
+    }
+    return(survivor_number)
+}
+#実行
+survivor_number <- survivor(
+    ratio = ratio,
+    group_size = group_size
+)
+#各戦略の数を数え上げ
+graph_data <- function(change_data_frame_data, strategy_pattern, survivor_number) {
+    graph_data_vector <- c()
+    for (i in 1:strategy_pattern) {
+        strategy_items <- sum(change_data_frame_data$strategy_number[1:survivor_number] == i)
+        graph_data_vector <- append(graph_data_vector, strategy_items)
+    }
+    return(graph_data_vector)
+}
+#実行
+graph_data_vector <- graph_data(
+    change_data_frame_data = change_data_frame_data,
+    strategy_pattern = strategy_pattern,
+    survivor_number = survivor_number
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+graph_data <- function(change_data_frame_data, strategy_pattern) {
+    sorted_strategy_data <- change_data_frame_data[order(change_data_frame_data$strategy_number, decreasing=F), ]
+    each_strategy_data_items_vector <- c()
+    for (i in 1:strategy_pattern) {
+        #Headerがstrategy_numberのところで、strategy_numberがi
+        filter <- sorted_strategy_data[sorted_strategy_data$strategy_number == i, ]
+        #filterの行数を調べればいい
+        each_strategy_data_items <- nrow(filter)
+        each_strategy_data_items_vector <- append(each_strategy_data_items_vector, each_strategy_data_items)
+    }
+    return(each_strategy_data_items_vector)
+}
+#実行
+graph_data_vector <- graph_data(
+    change_data_frame_data = change_data_frame_data,
+    strategy_pattern = strategy_pattern
+)
+result_data <- append(result_data, graph_data_vector)
+result_data <- data.frame(row.names = 1:group_size)
