@@ -227,7 +227,7 @@ ga_roulette <- function(
         #!以下、実験
         #最低点の取得
         min_point <- point_data_frame_ordered[group_size, 1]
-        min_point <- round(min_point * 0.9999)
+        min_point <- round(min_point * 0.99999) - 1
         #TODO: ごり押しで差を開けた
         for (i in 1:group_size) {
             point_data_frame_ordered[i, 1] <- point_data_frame_ordered[i, 1] - min_point #nolint
@@ -268,8 +268,13 @@ ga_roulette <- function(
             warning('The ratio`s number is 1. You should input ratio less than your input data.') #nolint
         }
         #*ポイントの？をつくろう！
-        point_as_vector <- as.vector(data$point)
+        point_as_vector <- data$point
         select_data_number <- sample(1:group_size, survivor_number, replace = FALSE, prob = point_as_vector) #nolint
+        #TODO###############################
+        print("###################")
+        print("select_data_number")
+        print(select_data_number)
+        #TODO###############################
         #*data.frame化
         select_data <- data.frame()
         for (i in 1:survivor_number) {
@@ -349,16 +354,6 @@ ga_roulette <- function(
             #変動する分の長さ
             fluctuant_ratio_size <- generate_size - equal_ratio_size
             #*実際の生成
-            #均等にする部分の生成
-            # equal_ratio_vector_prop_func <- function() {
-            #     equal_ratio_vector_prop <- c()
-            #     for (i in 1:strategy_pattern) {
-            #         each_strategy_generate_ratio <- strategy_pattern / 100
-            #         equal_ratio_vector_prop <- append(equal_ratio_vector_prop, each_strategy_generate_ratio)
-            #     }
-            #     return(equal_ratio_vector_prop)
-            # }
-            # equal_ratio_vector_prob <- equal_ratio_vector_prop_func()
             equal_ratio_vector <- sample(1:strategy_pattern, equal_ratio_size, replace = TRUE, prob = NULL)
             #変動する分の生成
             fluctuant_ratio_vector <- sample(1:strategy_pattern, fluctuant_ratio_size, replace = TRUE, prob = each_strategy_ratio)
@@ -396,27 +391,31 @@ ga_roulette <- function(
 
 ##################決めることのできるパラメーター集###################
 #戦略の集団サイズ
-group_size <- 100
+group_size <- 60
 #各戦略の長さ
-the_number_of_times <- 10
+the_number_of_times <- 12
 #戦略パターン
-strategy_pattern <- 10
+strategy_pattern <- 6
 #点数配分
 win_point <- 10
-lose_point <- 1
-draw_point <- 0
+lose_point <- 0
+draw_point <- 1
 #上位何パーセント残すか
-ratio <- 0.5
+ratio <- 0.9
 #ランダム生成か割合で生成するか
-how_to_generate <- 2
+#1 ... ランダム
+#2 ... 割合
+how_to_generate <- 1
 #割合で生成する場合に使用されるパーセンテージに当たる変数
 equal_ratio <- 0.5
+#世代数
+gene <- 200
 
 
 #具体的な評価関数
 #pattern_1
 #ランダム生成
-pattern_1 <- strategy_uniform_random(the_number_of_times = the_number_of_times) #nolint
+#TODO pattern_1 <- strategy_uniform_random(the_number_of_times = the_number_of_times) #nolint
 #pattern_2
 #全てグー
 pattern_2 <- strategy_all_the_same(the_number_of_times = the_number_of_times, number = 1) #nolint
@@ -441,15 +440,15 @@ pattern_7 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 1
 #pattern_8
 #cycle = 2
 #グーはじめ
-pattern_8 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 1) #nolint
+#TODO pattern_8 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 1) #nolint
 #pattern_9
 #cycle = 2
 #チョキはじめ
-pattern_9 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 2) #nolint
+#TODO pattern_9 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 2) #nolint
 #pattern_10
 #cycle = 2
 #パーはじめ
-pattern_10 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 3) #nolint
+#TODO pattern_10 <- strategy_cycle(the_number_of_times = the_number_of_times, cycle = 2, first_number = 3) #nolint
 
 #####################################################################
 #初期集団の生成
@@ -467,7 +466,6 @@ data <- gen_group(group_size = group_size, strategy_pattern = strategy_pattern) 
 
 
 #TODO: 実行!!!!!!!!!
-gene <- 100
 result_data <- data.frame()
 #結果をdata.frameに格納
 result <- function(result_data, graph_data_vector) {
@@ -486,16 +484,16 @@ for (i in 1:gene) {
         win_point = win_point,
         lose_point = lose_point,
         draw_point = draw_point,
-        pattern_1,
+        #! pattern_1,
         pattern_2,
         pattern_3,
         pattern_4,
         pattern_5,
         pattern_6,
-        pattern_7,
-        pattern_8,
-        pattern_9,
-        pattern_10
+        pattern_7
+        #! pattern_8,
+        #! pattern_9,
+        #! pattern_10
     )
 
     ###########
@@ -578,13 +576,13 @@ library(ggplot2)
 
 generation <- 1:gene
 ggplot(data = result_data, aes(generation)) +
-    geom_line(aes(y = result_data[,1], colour = '1')) +
-    geom_line(aes(y = result_data[,2], colour = '2')) +
-    geom_line(aes(y = result_data[,3], colour = '3')) +
-    geom_line(aes(y = result_data[,4], colour = '4')) +
-    geom_line(aes(y = result_data[,5], colour = '5')) +
-    geom_line(aes(y = result_data[,6], colour = '6')) +
-    geom_line(aes(y = result_data[,7], colour = '7')) +
-    geom_line(aes(y = result_data[,8], colour = '8')) +
-    geom_line(aes(y = result_data[,9], colour = '9')) +
-    geom_line(aes(y = result_data[,10], colour = '10'))
+    geom_line(aes(y = result_data[,1], colour = '2')) +
+    geom_line(aes(y = result_data[,2], colour = '3')) +
+    geom_line(aes(y = result_data[,3], colour = '4')) +
+    geom_line(aes(y = result_data[,4], colour = '5')) +
+    geom_line(aes(y = result_data[,5], colour = '6')) +
+    geom_line(aes(y = result_data[,6], colour = '7'))
+    # geom_line(aes(y = result_data[,7], colour = '7')) +
+    # geom_line(aes(y = result_data[,8], colour = '8')) +
+    # geom_line(aes(y = result_data[,9], colour = '9')) +
+    # geom_line(aes(y = result_data[,10], colour = '10'))

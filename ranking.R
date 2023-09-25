@@ -395,10 +395,10 @@ the_number_of_times <- 10
 strategy_pattern <- 10
 #点数配分
 win_point <- 10
-lose_point <- 1
-draw_point <- 0
+lose_point <- 0
+draw_point <- 1
 #上位何パーセント残すか
-ratio <- 0.5
+ratio <- 0.8
 #ランダム生成か割合で生成するか
 how_to_generate <- 1
 #割合で生成する場合に使用されるパーセンテージに当たる変数
@@ -585,107 +585,3 @@ ggplot(
     geom_line(aes(y = result_data[,10], colour = '10'))
 
 
-# ga_ranking_result <- function(
-#     generation,
-#     group,
-#     group_size,
-#     the_number_of_times,
-#     strategy_pattern,
-#     how_to_generate,
-#     equal_ratio,
-#     ratio = ratio,
-#     win_point,
-#     lose_point,
-#     draw_point,
-#     ...
-# ) {
-#     result_data <- data.frame()
-
-#     for (i in 1:generation) {
-#         data <- ga_ranking(
-#             group = data,
-#             group_size = group_size,
-#             the_number_of_times = the_number_of_times,
-#             strategy_pattern = strategy_pattern,
-#             how_to_generate = how_to_generate,
-#             equal_ratio = equal_ratio,
-#             ratio = ratio,
-#             win_point = win_point,
-#             lose_point = lose_point,
-#             draw_point = draw_point,
-#             ...
-#         )
-
-#         ###########
-#         #グラフ出力
-#         ###########
-#         #data.frameに変換
-#         change_data_frame <- function(data, group_size) {
-#             data_data_frame <- data.frame()
-#             for (i in 1:group_size) {
-#                 data_data_frame <- rbind(data_data_frame, data[i])
-#             }
-#             colnames(data_data_frame) <- c('strategy_number')
-#             return(data_data_frame)
-#         }
-#         #実行
-#         change_data_frame_data <- change_data_frame(
-#             data = data,
-#             group_size = group_size
-#         )
-
-#         #集計
-#         #上位グループの数を調べる
-#         survivor <- function(ratio, group_size) {
-#             #rationのエラーハンドリング
-#             #!0 < ratio < 1
-#             if (0 >= ratio || 1 <= ratio) {
-#                 stop('ratio can only input 0 < ratio < 1.')
-#             }
-#             #IEC 60559規格の四捨五入で、整数値にする
-#             survivor_number <- round(group_size * ratio)
-#             #エラーハンドリング
-#             #四捨五入でsurvor == 0 || 1 の時
-#             if (survivor_number == 0) {
-#                 survivor_number <- 1
-#                 warning('The ratio`s number is 0. You should input ratio larger than your input data.')
-#             } else if (survivor_number == group_size) {
-#                 survivor_number <- group_size - 1
-#                 warning('The ratio`s number is 1. You should input ratio less than your input data.')
-#             }
-#             return(survivor_number)
-#         }
-#         #実行
-#         survivor_number <- survivor(
-#             ratio = ratio,
-#             group_size = group_size
-#         )
-#         #各戦略の数を数え上げ
-#         graph_data <- function(change_data_frame_data, strategy_pattern, survivor_number) {
-#             graph_data_vector <- c()
-#             for (i in 1:strategy_pattern) {
-#                 strategy_items <- sum(change_data_frame_data$strategy_number[1:survivor_number] == i)
-#                 graph_data_vector <- append(graph_data_vector, strategy_items)
-#             }
-#             return(graph_data_vector)
-#         }
-#         #実行
-#         graph_data_vector <- graph_data(
-#             change_data_frame_data = change_data_frame_data,
-#             strategy_pattern = strategy_pattern,
-#             survivor_number = survivor_number
-#         )
-
-#         print(graph_data_vector)
-#         #結果をdata.frameに格納
-#         result <- function(result_data, graph_data_vector) {
-#             result_data <- rbind(result_data, graph_data_vector)
-#         }
-#         #実行
-#         result_data <- result(
-#             result_data = result_data,
-#             graph_data_vector = graph_data_vector
-#         )
-#     }
-#     colnames(result_data) <- c(1:strategy_pattern)
-# }

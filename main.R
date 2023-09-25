@@ -350,7 +350,7 @@ ranking_select_data <- ranking_select(
 #####################################################################################################
 #ルーレット選択
 #上位x%残す　(0 < ratio < 1)
-ratio <- 0.5
+ratio <- 0.8
 
 roulette_select <- function(data, group_size, ratio) {
     #rationのエラーハンドリング
